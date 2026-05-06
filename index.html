@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Registro de Venda</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F4EF;
+    --surface: #FFFFFF;
+    --border: #E2DDD6;
+    --text: #1A1714;
+    --muted: #7A746C;
+    --accent: #C4763A;
+    --accent-light: #FDF0E6;
+    --accent-dark: #A35E25;
+    --success: #3A7A5A;
+    --success-light: #E6F5EE;
+    --error: #C43A3A;
+    --radius: 12px;
+    --shadow: 0 2px 16px rgba(26,23,20,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  header {
+    background: var(--text);
+    color: #FFF;
+    padding: 20px 20px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: -0.3px;
+  }
+
+  header p {
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+    margin-top: 3px;
+  }
+
+  .loja-bar {
+    display: flex;
+    gap: 8px;
+    padding: 14px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .loja-btn {
+    flex-shrink: 0;
+    padding: 7px 16px;
+    border-radius: 99px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .loja-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #FFF;
+  }
+
+  .form-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+
+  input, select {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    color: var(--text);
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+  }
+
+  .select-wrap {
+    position: relative;
+  }
+
+  .select-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+    font-size: 14px;
+  }
+
+  .toggle-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .toggle-btn {
+    padding: 14px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+
+  .toggle-btn.selected {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent-dark);
+  }
+
+  .entrega-fields {
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+    background: var(--accent-light);
+    border-radius: var(--radius);
+    border: 1.5px solid #EDD5B8;
+  }
+
+  .entrega-fields.show { display: flex; }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: -4px;
+  }
+
+  .btn-submit {
+    width: 100%;
+    padding: 17px;
+    background: var(--accent);
+    color: #FFF;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-top: 6px;
+  }
+
+  .btn-submit:active { background: var(--accent-dark); }
+  .btn-submit:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--text);
+    color: #FFF;
+    padding: 14px 24px;
+    border-radius: 99px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 100;
+    transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+    white-space: nowrap;
+    box-shadow: var(--shadow);
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--error); }
+
+  /* Config overlay */
+  .config-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 50;
+    align-items: flex-end;
+  }
+  .config-overlay.show { display: flex; }
+
+  .config-sheet {
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 24px 20px 40px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .config-sheet h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+
+  .config-sheet p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .config-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--text);
+    color: #FFF;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+
+  .gear-btn {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.15);
+    border: none;
+    border-radius: 8px;
+    color: #FFF;
+    font-size: 18px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  header { position: relative; }
+
+  .input-prefix {
+    position: relative;
+  }
+  .input-prefix span {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 16px;
+    pointer-events: none;
+  }
+  .input-prefix input {
+    padding-left: 34px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Registro de Venda</h1>
+  <p id="lojaLabel">Selecione a loja abaixo</p>
+  <button class="gear-btn" onclick="openConfig()" title="Configurar URL">⚙</button>
+</header>
+
+<div class="loja-bar">
+  <button class="loja-btn" data-loja="Armarinho - Centro" onclick="selectLoja(this)">Armarinho Centro</button>
+  <button class="loja-btn" data-loja="Armarinho - Bangu" onclick="selectLoja(this)">Armarinho Bangu</button>
+  <button class="loja-btn" data-loja="Havaianas" onclick="selectLoja(this)">Havaianas</button>
+</div>
+
+<div class="form-body">
+
+  <div class="field">
+    <label>Vendedora</label>
+    <input type="text" id="vendedora" placeholder="Seu nome" autocomplete="name">
+  </div>
+
+  <div class="field">
+    <label>Data da Venda</label>
+    <input type="date" id="data">
+  </div>
+
+  <div class="divider"></div>
+  <div class="section-title">Pedido</div>
+
+  <div class="field">
+    <label>Fonte da Venda</label>
+    <div class="toggle-group">
+      <button class="toggle-btn" data-val="WhatsApp" onclick="selectToggle('fonte', this)">💬 WhatsApp</button>
+      <button class="toggle-btn" data-val="Instagram" onclick="selectToggle('fonte', this)">📸 Instagram</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Segmento do Produto</label>
+    <div class="select-wrap">
+      <select id="segmento">
+        <option value="">Selecione...</option>
+        <option>Crochê e Tricô</option>
+        <option>Costura Criativa</option>
+        <option>Pintura e Biscuit</option>
+        <option>Bijuteria e Acessórios</option>
+        <option>Laço e Decoração Infantil</option>
+        <option>Bordado e Acabamentos</option>
+        <option>Havaianas / Sandálias</option>
+        <option>Outros</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Quantidade de Itens</label>
+    <input type="number" id="qtd" placeholder="Ex: 3" min="1" inputmode="numeric">
+  </div>
+
+  <div class="field">
+    <label>Valor do Pedido (R$)</label>
+    <div class="input-prefix">
+      <span>R$</span>
+      <input type="number" id="valor" placeholder="0,00" min="0" step="0.01" inputmode="decimal">
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="section-title">Entrega</div>
+
+  <div class="field">
+    <label>Modalidade</label>
+    <div class="toggle-group">
+      <button class="toggle-btn" data-val="Retirada" onclick="selectToggle('entrega', this); toggleEntrega(false)">🏪 Retirada</button>
+      <button class="toggle-btn" data-val="Entrega" onclick="selectToggle('entrega', this); toggleEntrega(true)">🛵 Entrega</button>
+    </div>
+  </div>
+
+  <div class="entrega-fields" id="entregaFields">
+    <div class="field">
+      <label>Bairro de Entrega</label>
+      <input type="text" id="bairro" placeholder="Ex: Centro, Bangu...">
+    </div>
+    <div class="field">
+      <label>Taxa do Motoboy (R$)</label>
+      <div class="input-prefix">
+        <span>R$</span>
+        <input type="number" id="taxaMoto" placeholder="0,00" min="0" step="0.01" inputmode="decimal">
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-submit" id="btnEnviar" onclick="enviar()">Registrar Venda</button>
+
+</div>
+
+<!-- Config overlay -->
+<div class="config-overlay" id="configOverlay" onclick="closeConfig(event)">
+  <div class="config-sheet">
+    <h2>Configuração</h2>
+    <p>Cole aqui a URL do Google Apps Script (Web App URL) para conectar o formulário à planilha.</p>
+    <div class="field">
+      <label>URL do Apps Script</label>
+      <input type="url" id="configUrl" placeholder="https://script.google.com/macros/s/..." style="font-size:13px; padding:12px 14px;">
+    </div>
+    <div class="field" style="margin-top:10px">
+      <label>Salvar vendedora</label>
+      <input type="text" id="configVendedora" placeholder="Nome padrão (opcional)" style="font-size:14px; padding:12px 14px;">
+    </div>
+    <button class="config-btn" onclick="salvarConfig()">Salvar</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // State
+  let lojaAtiva = '';
+  let toggles = { fonte: '', entrega: '' };
+
+  // Init
+  window.onload = () => {
+    // Set today's date
+    document.getElementById('data').valueAsDate = new Date();
+
+    // Load saved config
+    const url = localStorage.getItem('scriptUrl') || '';
+    const vendedora = localStorage.getItem('vendedoraNome') || '';
+    document.getElementById('configUrl').value = url;
+    document.getElementById('configVendedora').value = vendedora;
+    if (vendedora) document.getElementById('vendedora').value = vendedora;
+
+    // Load saved loja
+    const lojaS = localStorage.getItem('lojaAtiva') || '';
+    if (lojaS) {
+      const btn = document.querySelector(`.loja-btn[data-loja="${lojaS}"]`);
+      if (btn) selectLoja(btn);
+    }
+  };
+
+  function selectLoja(btn) {
+    document.querySelectorAll('.loja-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    lojaAtiva = btn.dataset.loja;
+    document.getElementById('lojaLabel').textContent = lojaAtiva;
+    localStorage.setItem('lojaAtiva', lojaAtiva);
+  }
+
+  function selectToggle(group, btn) {
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    toggles[group] = btn.dataset.val;
+  }
+
+  function toggleEntrega(show) {
+    const el = document.getElementById('entregaFields');
+    el.classList.toggle('show', show);
+    if (!show) {
+      document.getElementById('bairro').value = '';
+      document.getElementById('taxaMoto').value = '';
+    }
+  }
+
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + type;
+    setTimeout(() => t.className = 'toast', 3000);
+  }
+
+  function openConfig() {
+    document.getElementById('configOverlay').classList.add('show');
+  }
+
+  function closeConfig(e) {
+    if (e.target === document.getElementById('configOverlay')) {
+      document.getElementById('configOverlay').classList.remove('show');
+    }
+  }
+
+  function salvarConfig() {
+    const url = document.getElementById('configUrl').value.trim();
+    const nome = document.getElementById('configVendedora').value.trim();
+    localStorage.setItem('scriptUrl', url);
+    localStorage.setItem('vendedoraNome', nome);
+    if (nome) document.getElementById('vendedora').value = nome;
+    document.getElementById('configOverlay').classList.remove('show');
+    showToast('✓ Configuração salva', 'success');
+  }
+
+  async function enviar() {
+    // Validações
+    if (!lojaAtiva) { showToast('⚠ Selecione a loja', 'error'); return; }
+    const vendedora = document.getElementById('vendedora').value.trim();
+    if (!vendedora) { showToast('⚠ Informe o nome da vendedora', 'error'); return; }
+    const data = document.getElementById('data').value;
+    if (!data) { showToast('⚠ Informe a data', 'error'); return; }
+    if (!toggles.fonte) { showToast('⚠ Selecione a fonte da venda', 'error'); return; }
+    const segmento = document.getElementById('segmento').value;
+    if (!segmento) { showToast('⚠ Selecione o segmento', 'error'); return; }
+    const qtd = document.getElementById('qtd').value;
+    if (!qtd || qtd < 1) { showToast('⚠ Informe a quantidade', 'error'); return; }
+    const valor = document.getElementById('valor').value;
+    if (!valor || valor <= 0) { showToast('⚠ Informe o valor do pedido', 'error'); return; }
+    if (!toggles.entrega) { showToast('⚠ Selecione retirada ou entrega', 'error'); return; }
+
+    let bairro = '', taxaMoto = '';
+    if (toggles.entrega === 'Entrega') {
+      bairro = document.getElementById('bairro').value.trim();
+      if (!bairro) { showToast('⚠ Informe o bairro de entrega', 'error'); return; }
+      taxaMoto = document.getElementById('taxaMoto').value || '0';
+    }
+
+    const scriptUrl = localStorage.getItem('scriptUrl') || '';
+    if (!scriptUrl) {
+      showToast('⚠ Configure a URL do script (⚙)', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('btnEnviar');
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    const payload = {
+      loja: lojaAtiva,
+      vendedora,
+      data,
+      fonte: toggles.fonte,
+      segmento,
+      qtd: parseInt(qtd),
+      valor: parseFloat(valor),
+      modalidade: toggles.entrega,
+      bairro,
+      taxaMotoboy: parseFloat(taxaMoto) || 0
+    };
+
+    try {
+      await fetch(scriptUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      showToast('✓ Venda registrada!', 'success');
+      resetForm();
+    } catch (err) {
+      showToast('✗ Erro ao enviar. Tente novamente.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Registrar Venda';
+    }
+  }
+
+  function resetForm() {
+    // Reset só os campos do pedido, mantém loja e vendedora
+    document.getElementById('data').valueAsDate = new Date();
+    toggles.fonte = '';
+    toggles.entrega = '';
+    document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('segmento').value = '';
+    document.getElementById('qtd').value = '';
+    document.getElementById('valor').value = '';
+    toggleEntrega(false);
+  }
+</script>
+</body>
+</html>
